@@ -9,33 +9,37 @@ import SwiftUI
 
 struct ContentView: View {
     let people = ["Nancy Pelosi", "Alex Padilla", "Dianne Feinsten", "Gavin Newsom"]
+    @State private var usedWords = [String]()
+    @State private var rootWord = ""
+    @State private var newWord = ""
+
     var body: some View {
-        List {
-            // spell checker API
-            let word = "swift"
-            let checker = UITextChecker()
-            let range = NSRange(location: 0, length: word.utf16.count)
-            let misspelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
-            let allGood = misspelledRange.location == NSNotFound
+        NavigationView {
+            VStack {
+                TextField("Enter your word", text: $newWord, onCommit: addNewWord)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .autocapitalization(.none)
+                    .padding()
 
-            //string API
-            let input = """
-                金
-                蓬
-                萊
-            """
-            let letters = input.components(separatedBy: "\n")
-            let letter = letters.randomElement()
-            let trimmed = letter?.trimmingCharacters(in: .whitespacesAndNewlines)
-
-            Section(header: Text("People")) {
-                ForEach(people, id:\.self) { person in
-                    Text("\(person)")
+                List(usedWords, id: \.self) {
+                    Label($0, systemImage: "\($0.count).circle")
                 }
+                .listStyle(GroupedListStyle())
             }
-        }
-        .listStyle(GroupedListStyle())
+        }.navigationTitle(rootWord)
     }
+
+    func addNewWord() {
+        let answer = newWord.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard answer.count > 0 else {
+            return
+        }
+
+        usedWords.insert(answer, at: 0)
+        newWord = ""
+    }
+
+
 }
 
 struct ContentView_Previews: PreviewProvider {
