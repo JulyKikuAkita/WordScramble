@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    let people = ["Nancy Pelosi", "Alex Padilla", "Dianne Feinsten", "Gavin Newsom"]
     @State private var usedWords = [String]()
     @State private var rootWord = ""
     @State private var newWord = ""
@@ -20,20 +19,32 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
-                TextField("Enter your word", text: $newWord, onCommit: addNewWord)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .autocapitalization(.none)
-                    .padding()
-
-                List(usedWords, id: \.self) {
-                    Label($0, systemImage: "\($0.count).circle")
+            List {
+                Section {
+                    TextField("Enter your word", text: $newWord)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
+                        .padding()
                 }
-                .listStyle(GroupedListStyle())
+
+                Section {
+                    ForEach(usedWords, id:\.self) { word in
+                        HStack {
+                            Image(systemName: "\(word.count).circle")
+                            Text(word)
+                        }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(word)
+                        .accessibilityHint("\(word.count) letters")
+                    }
+                }
 
                 Text("Score: \(score)")
             }
             .navigationBarTitle(rootWord)
+            .onSubmit {
+                addNewWord()
+            }
             .navigationBarItems(leading: Button("New Game", action: startGame))
             .onAppear(perform: startGame)
             .alert(isPresented: $showingError) {
@@ -72,7 +83,9 @@ struct ContentView: View {
             return
         }
 
-        usedWords.insert(answer, at: 0)
+        withAnimation {
+            usedWords.insert(answer, at: 0)
+        }
         newWord = ""
         addPoints()
 
